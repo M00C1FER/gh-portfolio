@@ -40,7 +40,32 @@ out="$("$DOTMOO" config)"
 [[ "$out" == *"default_owner: octocat"* ]] || fail "config missing owner: $out"
 pass "config prints owner"
 
-# 4. unknown command exits 2
+# 4. TOML array — single-line layout
+cat > "$DOTMOO_CONFIG" <<EOF
+[portfolio]
+default_owner = "octocat"
+repos = [ "alpha", "bravo" ]
+EOF
+out="$("$DOTMOO" list)"
+[[ "$out" == *"alpha"* ]] || fail "single-line TOML missed alpha: $out"
+[[ "$out" == *"bravo"* ]] || fail "single-line TOML missed bravo: $out"
+pass "TOML array — single line"
+
+# 4b. TOML array — mixed layout (first item on opener line)
+cat > "$DOTMOO_CONFIG" <<EOF
+[portfolio]
+default_owner = "octocat"
+repos = [ "first",
+    "second",
+    "third" ]
+EOF
+out="$("$DOTMOO" list)"
+[[ "$out" == *"first"* ]] || fail "mixed TOML missed first: $out"
+[[ "$out" == *"second"* ]] || fail "mixed TOML missed second: $out"
+[[ "$out" == *"third"* ]] || fail "mixed TOML missed third: $out"
+pass "TOML array — mixed layout"
+
+# 5. unknown command exits 2
 if "$DOTMOO" no-such-command >/dev/null 2>&1; then
     fail "unknown command should exit non-zero"
 fi
