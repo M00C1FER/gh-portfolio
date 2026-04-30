@@ -1,10 +1,14 @@
 # dotmoo
 
-> **Multi-repo portfolio CLI: one command, many repos.** Wraps `gh` + `jq` for fleet operations across an entire GitHub portfolio. Pure Bash — every subcommand is 5–30 lines of readable shell, no compilation, no runtime dependencies beyond `bash 4+ gh`.
+> **The portfolio operator: one command, many repos.** Pure Bash CLI that wraps `gh` + `jq` for fleet operations across an entire GitHub portfolio. Status table across all repos, fan-out semver bumps, batch PR audits, full review-summarize-release chains in one shot. No compiler, no venv, no toolchain — just `bash 4+`, `gh`, and a 50-line config.
 
 [![CI](https://github.com/M00C1FER/dotmoo/actions/workflows/ci.yml/badge.svg)](https://github.com/M00C1FER/dotmoo/actions)
 ![Bash](https://img.shields.io/badge/bash-4+-black)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+## What this is, exactly
+
+Other tools (`maxbeizer/gh-fleet`, `qskkk/git-fleet`, `mu-repo`, `meta`) handle multi-repo *git* operations. **dotmoo handles multi-repo *AI-tooling* operations** — chain `kingfisher` → `mesh-review` → `release-please` across an entire portfolio with one invocation. It's the conductor for the rest of your dev-tool stack, not a replacement for any one tool in it.
 
 ## What it does
 
