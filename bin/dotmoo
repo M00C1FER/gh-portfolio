@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# dotmoo — multi-repo portfolio CLI wrapping gh + jq.
+#
+# Usage:
+#   dotmoo <subcommand> [options]
+#
+# Subcommands:
+#   status      table of CI/stars/issues across all configured repos
+#   bump        run `flowtag --next-version` across repos with new commits
+#   audit       run triple-review on a single PR (or all open PRs in --all)
+#   summary     run pr-summary-mesh on a single PR
+#   cycle       full chain: gatecheck → triple-review → pr-summary-mesh → flowtag
+#   list        print the configured repo list
+#   config      print resolved config + path
+#   version     print dotmoo version
+#   help        print this message
+#
+# Configuration:
+#   ~/.dotmoo/portfolio.toml   (auto-created on first run if absent)
+
+set -euo pipefail
+
+DOTMOO_VERSION="0.1.0"
+DOTMOO_CONFIG="${DOTMOO_CONFIG:-$HOME/.dotmoo/portfolio.toml}"
+DOTMOO_LIB="${DOTMOO_LIB:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib}"
+
+# ── Bootstrap config if absent ───────────────────────────────────────────────
+
+ensure_config() {
+    if [ -f "$DOTMOO_CONFIG" ]; then return 0; fi
+    mkdir -p "$(dirname "$DOTMOO_CONFIG")"
+    cat > "$DOTMOO_CONFIG" <<'EOF'
+# dotmoo portfolio config — list every repo `dotmoo` should fan out to.
+# Reload anytime by re-running `dotmoo` (no daemon, no cache).
+[portfolio]
+default_owner = ""
+repos = [
+    # "polite-fetch",
+    # "mcp-citation-research",
+    # "triple-review",
+    # "memory-anthropic-api",
+    # "recon-orchestrator",
+    # "flowtag",
+    # "pr-summary-mesh",
+    # "gatecheck",
+    # "dotmoo",
+]
+EOF
+    echo "[dotmoo] created $DOTMOO_CONFIG — edit it to register repos." >&2
+}
+
+# ── Minimal TOML reader (defensive; no toml-cli dep) ─────────────────────────
+# Parses only the two fields dotmoo needs: default_owner + repos array.
+
+read_default_owner() {
+    awk -F'=' '
+        /^[[:space:]]*default_owner[[:space:]]*=/ {
+            v = $2
+            gsub(/^[ \t"]+|[ \t"]+$/, "", v)
+            print v
+            exit
+        }' "$DOTMOO_CONFIG"
+}
+
+read_repos() {
+    awk '
+        /^[[:space:]]*repos[[:space:]]*=[[:space:]]*\[/ { in_arr = 1; next }
+        in_arr && /\]/ { exit }
+        in_arr {
+            line = $0
+            gsub(/[#].*/, "", line)        # strip trailing comments
+            gsub(/[ \t",]/, "", line)       # strip whitespace, quotes, commas
+            if (length(line) > 0) print line
+        }' "$DOTMOO_CONFIG"
+}
+
+# ── Sub-command implementations (sourced from lib/) ──────────────────────────
+
+require_gh() {
+    command -v gh >/dev/null 2>&1 || {
+        echo "[dotmoo] error: 'gh' CLI not found. Install: https://cli.github.com/" >&2
+        exit 2
+    }
+}
+
+dispatch() {
+    local cmd="${1:-help}"
+    shift || true
+    case "$cmd" in
+        status)   require_gh; source "$DOTMOO_LIB/dotmoo-status.sh"   && cmd_status   "$@";;
+        bump)     require_gh; source "$DOTMOO_LIB/dotmoo-bump.sh"     && cmd_bump     "$@";;
+        audit)    require_gh; source "$DOTMOO_LIB/dotmoo-audit.sh"    && cmd_audit    "$@";;
+        summary)  require_gh; source "$DOTMOO_LIB/dotmoo-summary.sh"  && cmd_summary  "$@";;
+        cycle)    require_gh; source "$DOTMOO_LIB/dotmoo-cycle.sh"    && cmd_cycle    "$@";;
+        list)     read_repos;;
+        config)
+            echo "config_path: $DOTMOO_CONFIG"
+            echo "default_owner: $(read_default_owner)"
+            echo "repos:"
+            read_repos | sed 's/^/  - /'
+            ;;
+        version)  echo "dotmoo $DOTMOO_VERSION";;
+        help|-h|--help|"")
+            sed -n '1,/^set -euo/p' "$0" | head -n -1 | grep -E '^# ' | sed 's/^# \?//'
+            ;;
+        *)        echo "[dotmoo] unknown command: $cmd (try 'dotmoo help')" >&2; exit 2;;
+    esac
+}
+
+ensure_config
+dispatch "$@"

@@ -1,0 +1,17 @@
+name: CI
+on:
+  push: { branches: [main, master] }
+  pull_request: { branches: [main, master] }
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke tests
+        run: bash tests/test_dotmoo.sh
+      - name: Shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq shellcheck
+          shellcheck -x bin/dotmoo lib/*.sh tests/*.sh || true
