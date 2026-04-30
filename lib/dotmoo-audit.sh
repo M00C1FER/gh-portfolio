@@ -13,6 +13,13 @@ cmd_audit() {
         return 2
     fi
 
+    # Track every temp file we create; trap on EXIT cleans them all up even
+    # if the script is interrupted (Ctrl+C, kill, error mid-loop). Without
+    # this, mktemp files leaked under /tmp on every interruption.
+    local -a __tmpfiles=()
+    # shellcheck disable=SC2064  # intentional eager expansion of array contents
+    trap 'for __tf in "${__tmpfiles[@]}"; do rm -f "$__tf"; done' EXIT
+
     if [ "$target" = "--all" ]; then
         local owner; owner="$(read_default_owner)"
         local repos; repos="$(read_repos)"
@@ -25,9 +32,9 @@ cmd_audit() {
                 echo "==== $owner/$repo#$n ===="
                 local diff_file
                 diff_file="$(mktemp -t dotmoo-audit-XXXXXX.diff)"
+                __tmpfiles+=("$diff_file")
                 gh pr diff "$n" --repo "$owner/$repo" > "$diff_file" \
                     && triple-review --falsify "$diff_file" || true
-                rm -f "$diff_file"
             done <<< "$prs"
         done <<< "$repos"
         return 0
@@ -42,7 +49,7 @@ cmd_audit() {
     fi
     local diff_file
     diff_file="$(mktemp -t dotmoo-audit-XXXXXX.diff)"
+    __tmpfiles+=("$diff_file")
     gh pr diff "$pr" --repo "$repo" > "$diff_file"
     triple-review --falsify "$diff_file"
-    rm -f "$diff_file"
 }
