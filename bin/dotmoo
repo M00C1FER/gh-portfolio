@@ -112,11 +112,18 @@ require_gh() {
     }
 }
 
+require_jq() {
+    command -v jq >/dev/null 2>&1 || {
+        echo "[dotmoo] error: 'jq' not found. Install: https://jqlang.github.io/jq/" >&2
+        exit 2
+    }
+}
+
 dispatch() {
     local cmd="${1:-help}"
     shift || true
     case "$cmd" in
-        status)   require_gh; source "$DOTMOO_LIB/dotmoo-status.sh"   && cmd_status   "$@";;
+        status)   require_gh; require_jq; source "$DOTMOO_LIB/dotmoo-status.sh"   && cmd_status   "$@";;
         bump)     require_gh; source "$DOTMOO_LIB/dotmoo-bump.sh"     && cmd_bump     "$@";;
         audit)    require_gh; source "$DOTMOO_LIB/dotmoo-audit.sh"    && cmd_audit    "$@";;
         summary)  require_gh; source "$DOTMOO_LIB/dotmoo-summary.sh"  && cmd_summary  "$@";;
