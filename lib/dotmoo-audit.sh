@@ -23,9 +23,11 @@ cmd_audit() {
             while IFS= read -r n; do
                 [ -z "$n" ] && continue
                 echo "==== $owner/$repo#$n ===="
-                gh pr diff "$n" --repo "$owner/$repo" \
-                    | (cd /tmp && cat > "/tmp/pr-$$.diff" && triple-review --falsify "/tmp/pr-$$.diff") || true
-                rm -f "/tmp/pr-$$.diff"
+                local diff_file
+                diff_file="$(mktemp -t dotmoo-audit-XXXXXX.diff)"
+                gh pr diff "$n" --repo "$owner/$repo" > "$diff_file" \
+                    && triple-review --falsify "$diff_file" || true
+                rm -f "$diff_file"
             done <<< "$prs"
         done <<< "$repos"
         return 0

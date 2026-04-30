@@ -63,15 +63,44 @@ read_default_owner() {
 }
 
 read_repos() {
+    # Handles three TOML array layouts:
+    #   repos = [ "a", "b" ]                  (single line)
+    #   repos = [                             (multi-line, opener-only)
+    #     "a",
+    #     "b",
+    #   ]
+    #   repos = [ "a",                        (mixed: first item on opener line)
+    #     "b" ]
     awk '
-        /^[[:space:]]*repos[[:space:]]*=[[:space:]]*\[/ { in_arr = 1; next }
-        in_arr && /\]/ { exit }
-        in_arr {
-            line = $0
-            gsub(/[#].*/, "", line)        # strip trailing comments
-            gsub(/[ \t",]/, "", line)       # strip whitespace, quotes, commas
-            if (length(line) > 0) print line
-        }' "$DOTMOO_CONFIG"
+        function emit(s,    n,a,i,tok) {
+            gsub(/[#].*/, "", s)              # strip trailing comments
+            n = split(s, a, ",")
+            for (i = 1; i <= n; i++) {
+                tok = a[i]
+                gsub(/[ \t"]/, "", tok)        # strip whitespace + quotes
+                if (length(tok) > 0) print tok
+            }
+        }
+        /^[[:space:]]*repos[[:space:]]*=[[:space:]]*\[/ {
+            in_arr = 1
+            sub(/^[^[]*\[/, "", $0)            # drop everything up to and incl. "["
+            if (index($0, "]") > 0) {
+                sub(/\].*/, "", $0)            # drop "]" and trailing
+                emit($0)
+                in_arr = 0
+                next
+            }
+            emit($0)                           # process any items on opener line
+            next
+        }
+        in_arr && /\]/ {
+            sub(/\].*/, "", $0)
+            emit($0)
+            in_arr = 0
+            next
+        }
+        in_arr { emit($0) }
+    ' "$DOTMOO_CONFIG"
 }
 
 # ── Sub-command implementations (sourced from lib/) ──────────────────────────

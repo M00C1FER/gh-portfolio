@@ -25,9 +25,9 @@ cmd_status() {
             continue
         fi
         local stars forks issues url
-        stars="$(printf '%s' "$meta" | sed -n 's/.*"stargazers_count":[[:space:]]*\([0-9]*\).*/\1/p' | head -1)"
-        forks="$(printf '%s' "$meta" | sed -n 's/.*"forks_count":[[:space:]]*\([0-9]*\).*/\1/p' | head -1)"
-        issues="$(printf '%s' "$meta" | sed -n 's/.*"open_issues_count":[[:space:]]*\([0-9]*\).*/\1/p' | head -1)"
+        stars="$(printf '%s' "$meta" | jq -r '.stargazers_count // 0' 2>/dev/null)"
+        forks="$(printf '%s' "$meta" | jq -r '.forks_count // 0' 2>/dev/null)"
+        issues="$(printf '%s' "$meta" | jq -r '.open_issues_count // 0' 2>/dev/null)"
         url="https://github.com/$owner/$repo"
         ci_status="$(gh run list --repo "$owner/$repo" --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo "")"
         [ -z "$ci_status" ] && ci_status="(no runs)"
