@@ -16,7 +16,12 @@ cmd_cycle() {
         return 2
     fi
 
+    if ! [[ "$pr" =~ ^[0-9]+$ ]]; then
+        echo "[dotmoo] error: PR number must be an integer, got: '$pr'" >&2; return 2
+    fi
+
     local diff_file; diff_file="$(mktemp -t dotmoo-cycle-XXXXXX.diff)"
+    trap 'rm -f "$diff_file"' EXIT
     gh pr diff "$pr" --repo "$repo" > "$diff_file"
 
     echo "==== gatecheck (secret scan) ===="
@@ -55,5 +60,4 @@ cmd_cycle() {
         echo "[dotmoo] flowtag not installed; skipping"
     fi
 
-    rm -f "$diff_file"
 }
