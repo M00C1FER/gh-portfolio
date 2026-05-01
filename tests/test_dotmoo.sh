@@ -6,7 +6,9 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 DOTMOO="$ROOT/bin/dotmoo"
 
-export HOME="$(mktemp -d)"
+_test_home="$(mktemp -d)"
+export HOME="$_test_home"
+trap 'rm -rf "$_test_home"' EXIT
 export DOTMOO_CONFIG="$HOME/.dotmoo/portfolio.toml"
 export DOTMOO_LIB="$ROOT/lib"
 
@@ -22,7 +24,7 @@ out="$("$DOTMOO" version)"
 [ -f "$DOTMOO_CONFIG" ] || fail "config should be created on first run"
 pass "version + config bootstrap"
 
-# 3. config readback with seeded values
+# 2. config readback with seeded values
 cat > "$DOTMOO_CONFIG" <<EOF
 [portfolio]
 default_owner = "octocat"
@@ -40,7 +42,7 @@ out="$("$DOTMOO" config)"
 [[ "$out" == *"default_owner: octocat"* ]] || fail "config missing owner: $out"
 pass "config prints owner"
 
-# 4. TOML array — single-line layout
+# 3. TOML array — single-line layout
 cat > "$DOTMOO_CONFIG" <<EOF
 [portfolio]
 default_owner = "octocat"
@@ -51,7 +53,7 @@ out="$("$DOTMOO" list)"
 [[ "$out" == *"bravo"* ]] || fail "single-line TOML missed bravo: $out"
 pass "TOML array — single line"
 
-# 4b. TOML array — mixed layout (first item on opener line)
+# 4. TOML array — mixed layout (first item on opener line)
 cat > "$DOTMOO_CONFIG" <<EOF
 [portfolio]
 default_owner = "octocat"
@@ -71,7 +73,7 @@ if "$DOTMOO" no-such-command >/dev/null 2>&1; then
 fi
 pass "unknown command rejected"
 
-# 5. help works without args
+# 6. help works without args
 out="$("$DOTMOO" help)"
 [[ "$out" == *"dotmoo"* ]] || fail "help should mention dotmoo: $out"
 pass "help"
