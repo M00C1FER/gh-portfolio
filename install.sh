@@ -36,7 +36,12 @@ main() {
             case "$OS_ID" in
                 debian|ubuntu)
                     # GitHub's apt repo is required for current gh
-                    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+                    # Download to a temp file first so we never pipe untrusted
+                    # binary data directly into a privileged write path.
+                    local _gpg_tmp; _gpg_tmp="$(mktemp)"
+                    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o "$_gpg_tmp"
+                    sudo install -o root -g root -m 644 "$_gpg_tmp" /usr/share/keyrings/githubcli-archive-keyring.gpg
+                    rm -f "$_gpg_tmp"
                     sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
                     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
                     sudo apt-get update -qq && sudo apt-get install -y gh;;
