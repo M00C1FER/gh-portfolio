@@ -123,11 +123,11 @@ dispatch() {
     local cmd="${1:-help}"
     shift || true
     case "$cmd" in
-        status)   require_gh; require_jq; source "$DOTMOO_LIB/dotmoo-status.sh"   && cmd_status   "$@";;
-        bump)     require_gh; source "$DOTMOO_LIB/dotmoo-bump.sh"     && cmd_bump     "$@";;
-        audit)    require_gh; source "$DOTMOO_LIB/dotmoo-audit.sh"    && cmd_audit    "$@";;
-        summary)  require_gh; source "$DOTMOO_LIB/dotmoo-summary.sh"  && cmd_summary  "$@";;
-        cycle)    require_gh; source "$DOTMOO_LIB/dotmoo-cycle.sh"    && cmd_cycle    "$@";;
+        status)   require_gh; require_jq; source "$DOTMOO_LIB/dotmoo-status.sh";   cmd_status   "$@";;
+        bump)     require_gh; source "$DOTMOO_LIB/dotmoo-bump.sh";     cmd_bump     "$@";;
+        audit)    require_gh; source "$DOTMOO_LIB/dotmoo-audit.sh";    cmd_audit    "$@";;
+        summary)  require_gh; source "$DOTMOO_LIB/dotmoo-summary.sh";  cmd_summary  "$@";;
+        cycle)    require_gh; source "$DOTMOO_LIB/dotmoo-cycle.sh";    cmd_cycle    "$@";;
         list)     read_repos;;
         config)
             echo "config_path: $DOTMOO_CONFIG"
@@ -137,7 +137,7 @@ dispatch() {
             ;;
         version)  echo "dotmoo $DOTMOO_VERSION";;
         help|-h|--help|"")
-            sed -n '1,/^set -euo/p' "$0" | head -n -1 | grep -E '^# ' | sed 's/^# \?//'
+            sed -n '1,/^set -euo/p' "$0" | sed '$d' | grep -E '^# ' | sed 's/^# \?//'
             ;;
         *)        echo "[dotmoo] unknown command: $cmd (try 'dotmoo help')" >&2; exit 2;;
     esac
