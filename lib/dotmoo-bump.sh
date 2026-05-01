@@ -12,6 +12,10 @@ cmd_bump() {
     fi
 
     local owner; owner="$(read_default_owner)"
+    if [ -z "$owner" ]; then
+        echo "[dotmoo] error: default_owner not set. Edit $DOTMOO_CONFIG and set default_owner." >&2
+        return 2
+    fi
     local repos; repos="$(read_repos)"
     [ -z "$repos" ] && { echo "[dotmoo] no repos configured" >&2; return 2; }
 
