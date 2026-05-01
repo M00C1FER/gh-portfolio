@@ -29,7 +29,9 @@ cmd_status() {
         forks="$(printf '%s' "$meta" | jq -r '.forks_count // 0' 2>/dev/null)"
         issues="$(printf '%s' "$meta" | jq -r '.open_issues_count // 0' 2>/dev/null)"
         url="https://github.com/$owner/$repo"
-        ci_status="$(gh run list --repo "$owner/$repo" --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo "")"
+        ci_status="$(gh run list --repo "$owner/$repo" --limit 1 --json conclusion \
+            -q 'if length == 0 then "(no runs)" else (.[0].conclusion // "(no runs)") end' \
+            2>/dev/null || echo "")"
         [ -z "$ci_status" ] && ci_status="(no runs)"
         printf "%-26s %-7s %-7s %-7s %-12s %s\n" \
             "$repo" "${stars:-0}" "${forks:-0}" "${issues:-0}" "$ci_status" "$url"
