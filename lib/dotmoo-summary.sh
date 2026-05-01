@@ -14,7 +14,10 @@ cmd_summary() {
     shift
     local mode="merge"
     if [ "${1:-}" = "--mode" ] && [ -n "${2:-}" ]; then
-        mode="$2"
+        case "$2" in
+            merge|squash|rebase|vote) mode="$2";;
+            *) echo "[dotmoo] error: unknown --mode '$2' (valid: merge, squash, rebase, vote)" >&2; return 2;;
+        esac
     fi
     pr-summary-mesh --pr "$target" --mode "$mode"
 }
