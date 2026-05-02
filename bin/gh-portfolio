@@ -5,7 +5,7 @@
 #   gh-portfolio <subcommand> [options]
 #
 # Subcommands:
-#   status      table of CI/stars/issues across all configured repos
+#   status      table of CI/stars/issues across all configured repos [--json]
 #   bump        run `flowtag --next-version` across repos with new commits
 #   audit       run triple-review on a single PR (or all open PRs in --all)
 #   summary     run pr-summary-mesh on a single PR
