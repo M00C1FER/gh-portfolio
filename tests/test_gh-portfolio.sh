@@ -141,7 +141,7 @@ out="$("$GH_PORTFOLIO" list)"
 rm -f "$HOME/.dotmoo/portfolio.toml"
 pass "legacy dotmoo config migration"
 
-# 12. status --json rejects when owner unset (flag parsing tested without network)
+# 13. status --json rejects when owner unset (flag parsing tested without network)
 # Restore normal PATH; gh + jq present but owner="" makes cmd_status fail before any API call.
 cat > "$GH_PORTFOLIO_CONFIG" <<EOF
 [portfolio]

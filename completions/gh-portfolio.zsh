@@ -25,7 +25,7 @@ _gh_portfolio_repos() {
             }
         ' "$config")
     fi
-    echo "${repos[@]}"
+    printf '%s\n' "${repos[@]}"
 }
 
 _gh_portfolio_owner() {
