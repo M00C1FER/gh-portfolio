@@ -78,4 +78,67 @@ out="$("$GH_PORTFOLIO" help)"
 [[ "$out" == *"gh-portfolio"* ]] || fail "help should mention gh-portfolio: $out"
 pass "help"
 
+# 7. empty portfolio.toml — list returns empty, config shows blank owner
+cat > "$GH_PORTFOLIO_CONFIG" <<EOF
+[portfolio]
+default_owner = ""
+repos = []
+EOF
+out="$("$GH_PORTFOLIO" list)"
+[ -z "$out" ] || fail "empty repos should produce no output, got: $out"
+out="$("$GH_PORTFOLIO" config)"
+[[ "$out" == *"default_owner: "* ]] || fail "config should print blank owner: $out"
+pass "empty portfolio.toml"
+
+# 8. malformed TOML (no repos key) — list returns empty, does not crash
+cat > "$GH_PORTFOLIO_CONFIG" <<EOF
+[portfolio]
+default_owner = "octocat"
+EOF
+out="$("$GH_PORTFOLIO" list)"
+[ -z "$out" ] || fail "missing repos key should produce no output, got: $out"
+pass "malformed TOML (missing repos key)"
+
+# 9. gh-not-on-PATH — status must exit 2 with a message
+mkdir -p "$_test_home/bin"
+# The shebang is `#!/usr/bin/env bash`; /usr/bin/env needs `bash` on PATH even
+# when PATH is restricted to the fake dir. The symlink satisfies that lookup.
+# gh is intentionally absent — that's what this test verifies.
+ln -sf "$(command -v bash)" "$_test_home/bin/bash"
+printf '#!/bin/sh\n' > "$_test_home/bin/jq"; chmod +x "$_test_home/bin/jq"
+err=""
+if err="$(PATH="$_test_home/bin" "$GH_PORTFOLIO" status 2>&1)"; then
+    fail "status should fail when gh absent"
+fi
+[[ "$err" == *"'gh'"* ]] || fail "error should mention gh: $err"
+pass "gh-not-on-PATH rejected"
+
+# 10. jq-not-on-PATH — status must exit 2 with a message
+mkdir -p "$_test_home/bin2"
+# Same bash symlink rationale as test 9. jq is intentionally absent.
+ln -sf "$(command -v bash)" "$_test_home/bin2/bash"
+printf '#!/bin/sh\nexec true\n' > "$_test_home/bin2/gh"; chmod +x "$_test_home/bin2/gh"
+err=""
+if err="$(PATH="$_test_home/bin2" "$GH_PORTFOLIO" status 2>&1)"; then
+    fail "status should fail when jq absent"
+fi
+[[ "$err" == *"'jq'"* ]] || fail "error should mention jq: $err"
+pass "jq-not-on-PATH rejected"
+
+# 11. legacy dotmoo config migration
+rm -f "$GH_PORTFOLIO_CONFIG"
+mkdir -p "$HOME/.dotmoo"
+cat > "$HOME/.dotmoo/portfolio.toml" <<EOF
+[portfolio]
+default_owner = "legacy-owner"
+repos = [ "migrated-repo" ]
+EOF
+err="$("$GH_PORTFOLIO" version 2>&1)"
+[[ "$err" == *"migrat"* ]] || fail "migration message expected: $err"
+[ -f "$GH_PORTFOLIO_CONFIG" ] || fail "config should be created via migration"
+out="$("$GH_PORTFOLIO" list)"
+[[ "$out" == *"migrated-repo"* ]] || fail "migrated repo not found: $out"
+rm -f "$HOME/.dotmoo/portfolio.toml"
+pass "legacy dotmoo config migration"
+
 echo "=== all smoke tests passed ==="

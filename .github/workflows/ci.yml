@@ -5,13 +5,24 @@ on:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install bash 5 (macOS — default bash 3.2 is too old)
+        if: matrix.os == 'macos-latest'
+        run: brew install bash
       - name: Smoke tests
         run: bash tests/test_gh-portfolio.sh
-      - name: Shellcheck
+      - name: Install shellcheck (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck
-          shellcheck -x bin/gh-portfolio lib/*.sh install.sh tests/*.sh
+      - name: Install shellcheck (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install shellcheck
+      - name: Shellcheck
+        run: shellcheck -x --source-path=lib bin/gh-portfolio lib/*.sh install.sh tests/*.sh
