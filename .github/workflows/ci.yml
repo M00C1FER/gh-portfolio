@@ -25,4 +25,4 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: brew install shellcheck
       - name: Shellcheck
-        run: shellcheck -x --source-path=lib bin/gh-portfolio lib/*.sh install.sh tests/*.sh
+        run: shellcheck -x --source-path=lib bin/gh-portfolio lib/*.sh install.sh tests/*.sh completions/gh-portfolio.bash
