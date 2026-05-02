@@ -28,6 +28,15 @@ GH_PORTFOLIO_LIB="${GH_PORTFOLIO_LIB:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &
 
 ensure_config() {
     if [ -f "$GH_PORTFOLIO_CONFIG" ]; then return 0; fi
+    # Legacy migration: if the old ~/.dotmoo config exists, copy it to the new path
+    local _legacy="$HOME/.dotmoo/portfolio.toml"
+    if [ -f "$_legacy" ]; then
+        echo "[gh-portfolio] migrating config: $_legacy → $GH_PORTFOLIO_CONFIG" >&2
+        mkdir -p "$(dirname "$GH_PORTFOLIO_CONFIG")"
+        cp "$_legacy" "$GH_PORTFOLIO_CONFIG"
+        echo "[gh-portfolio] migration done. Remove $_legacy when ready." >&2
+        return 0
+    fi
     mkdir -p "$(dirname "$GH_PORTFOLIO_CONFIG")"
     cat > "$GH_PORTFOLIO_CONFIG" <<'EOF'
 # gh-portfolio portfolio config — list every repo `gh-portfolio` should fan out to.
@@ -123,11 +132,31 @@ dispatch() {
     local cmd="${1:-help}"
     shift || true
     case "$cmd" in
-        status)   require_gh; require_jq; source "$GH_PORTFOLIO_LIB/gh-portfolio-status.sh";   cmd_status   "$@";;
-        bump)     require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-bump.sh";     cmd_bump     "$@";;
-        audit)    require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-audit.sh";    cmd_audit    "$@";;
-        summary)  require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-summary.sh";  cmd_summary  "$@";;
-        cycle)    require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-cycle.sh";    cmd_cycle    "$@";;
+        status)
+            require_gh; require_jq
+            source "$GH_PORTFOLIO_LIB/gh-portfolio-status.sh"
+            cmd_status "$@"
+            ;;
+        bump)
+            require_gh
+            source "$GH_PORTFOLIO_LIB/gh-portfolio-bump.sh"
+            cmd_bump "$@"
+            ;;
+        audit)
+            require_gh
+            source "$GH_PORTFOLIO_LIB/gh-portfolio-audit.sh"
+            cmd_audit "$@"
+            ;;
+        summary)
+            require_gh
+            source "$GH_PORTFOLIO_LIB/gh-portfolio-summary.sh"
+            cmd_summary "$@"
+            ;;
+        cycle)
+            require_gh
+            source "$GH_PORTFOLIO_LIB/gh-portfolio-cycle.sh"
+            cmd_cycle "$@"
+            ;;
         list)     read_repos;;
         config)
             echo "config_path: $GH_PORTFOLIO_CONFIG"

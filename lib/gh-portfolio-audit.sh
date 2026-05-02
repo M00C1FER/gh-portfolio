@@ -17,7 +17,7 @@ cmd_audit() {
     # if the script is interrupted (Ctrl+C, kill, error mid-loop). Without
     # this, mktemp files leaked under /tmp on every interruption.
     local -a __tmpfiles=()
-    # shellcheck disable=SC2064  # intentional eager expansion of array contents
+    # shellcheck disable=SC2064,SC2154  # eager expansion intentional; __tf is the for-loop variable inside the trap string
     trap 'for __tf in "${__tmpfiles[@]}"; do rm -f "$__tf"; done' EXIT
 
     if [ "$target" = "--all" ]; then
@@ -37,8 +37,9 @@ cmd_audit() {
                 local diff_file
                 diff_file="$(mktemp -t gh-portfolio-audit-XXXXXX.diff)"
                 __tmpfiles+=("$diff_file")
-                gh pr diff "$n" --repo "$owner/$repo" > "$diff_file" \
-                    && triple-review --falsify "$diff_file" || true
+                if gh pr diff "$n" --repo "$owner/$repo" > "$diff_file"; then
+                    triple-review --falsify "$diff_file" || true
+                fi
             done <<< "$prs"
         done <<< "$repos"
         return 0
