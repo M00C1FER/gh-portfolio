@@ -38,8 +38,8 @@ LIB_DIR="${HOME}/.local/share/gh-portfolio"
 SRC_DIR="${HOME}/.local/share/gh-portfolio-src"
 
 # ── Step 1: Verify we're in Termux ───────────────────────────────────────────
-if [ -z "${TERMUX_VERSION:-}" ] && [ ! -d "/data/data/com.termux" ]; then
-    warn "TERMUX_VERSION not set and /data/data/com.termux not found."
+if [ -z "${TERMUX_VERSION:-}" ] || [ ! -d "/data/data/com.termux" ]; then
+    warn "TERMUX_VERSION not set or /data/data/com.termux not found."
     warn "This script is intended for Termux. Proceeding anyway…"
 fi
 

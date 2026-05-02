@@ -30,7 +30,7 @@ setup() {
     ln -sf "$(command -v bash)"  "$_stub_no_jq/bash"
     ln -sf "$(command -v mkdir)" "$_stub_no_jq/mkdir"
     ln -sf "$(command -v cat)"   "$_stub_no_jq/cat"
-    printf '#!/bin/sh\nexec true\n' > "$_stub_no_jq/gh"; chmod +x "$_stub_no_jq/gh"
+    printf '#!/bin/sh\ntrue\n' > "$_stub_no_jq/gh"; chmod +x "$_stub_no_jq/gh"
 
     # stub_owner_guard: bash + no-op gh/jq + real awk/sed/mkdir/cat for TOML reader
     ln -sf "$(command -v bash)"  "$_stub_owner_guard/bash"
@@ -38,8 +38,8 @@ setup() {
     ln -sf "$(command -v sed)"   "$_stub_owner_guard/sed"
     ln -sf "$(command -v mkdir)" "$_stub_owner_guard/mkdir"
     ln -sf "$(command -v cat)"   "$_stub_owner_guard/cat"
-    printf '#!/bin/sh\nexec true\n' > "$_stub_owner_guard/gh"; chmod +x "$_stub_owner_guard/gh"
-    printf '#!/bin/sh\nexec true\n' > "$_stub_owner_guard/jq"; chmod +x "$_stub_owner_guard/jq"
+    printf '#!/bin/sh\ntrue\n' > "$_stub_owner_guard/gh"; chmod +x "$_stub_owner_guard/gh"
+    printf '#!/bin/sh\ntrue\n' > "$_stub_owner_guard/jq"; chmod +x "$_stub_owner_guard/jq"
 }
 
 teardown() {

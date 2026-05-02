@@ -19,6 +19,9 @@ cmd_audit() {
     # returning so they are cleaned up even when the function exits normally
     # (at which point local variables are already out of scope for the trap).
     local -a __tmpfiles=()
+    # "${arr[@]+${arr[@]}}" expands to the array elements only when the array is
+    # non-empty, avoiding an "unbound variable" error under `set -u` when the
+    # array has never been populated (e.g. the function returns early).
     # shellcheck disable=SC2064  # intentional: trap fires while __tmpfiles is still in scope on abnormal exit
     trap 'for __tf in "${__tmpfiles[@]+"${__tmpfiles[@]}"}"; do rm -f "$__tf"; done' EXIT
 

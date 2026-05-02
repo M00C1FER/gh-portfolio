@@ -149,8 +149,8 @@ mkdir -p "$_test_home/bin13"
 ln -sf "$(command -v bash)" "$_test_home/bin13/bash"
 ln -sf "$(command -v awk)"  "$_test_home/bin13/awk"
 ln -sf "$(command -v sed)"  "$_test_home/bin13/sed"
-printf '#!/bin/sh\nexec true\n' > "$_test_home/bin13/gh";  chmod +x "$_test_home/bin13/gh"
-printf '#!/bin/sh\nexec true\n' > "$_test_home/bin13/jq";  chmod +x "$_test_home/bin13/jq"
+printf '#!/bin/sh\ntrue\n' > "$_test_home/bin13/gh";  chmod +x "$_test_home/bin13/gh"
+printf '#!/bin/sh\ntrue\n' > "$_test_home/bin13/jq";  chmod +x "$_test_home/bin13/jq"
 cat > "$GH_PORTFOLIO_CONFIG" <<EOF
 [portfolio]
 default_owner = ""

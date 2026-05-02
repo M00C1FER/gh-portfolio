@@ -7,6 +7,8 @@ jobs:
   # ── Native OS runners ────────────────────────────────────────────────────────
   smoke:
     name: smoke (${{ matrix.os }})
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -41,6 +43,8 @@ jobs:
   # ── Debian container ─────────────────────────────────────────────────────────
   smoke-debian:
     name: smoke (debian:12 container)
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     container: debian:12
     steps:
@@ -59,6 +63,8 @@ jobs:
   # -- Alpine container (musl libc, ash default shell) -----------------------
   smoke-alpine:
     name: smoke (alpine:3.19 container)
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     container: alpine:3.19
     steps:
