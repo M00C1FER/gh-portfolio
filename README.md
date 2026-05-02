@@ -17,6 +17,7 @@ Fans common operations out across every repo in your portfolio:
 | Subcommand | Purpose |
 |---|---|
 | `gh-portfolio status` | Table of CI / stars / forks / issues / last-commit across every repo |
+| `gh-portfolio status --json` | Same data as a JSON array (pipe into `jq`, CI steps, dashboards) |
 | `gh-portfolio bump [--apply]` | Run `flowtag --next-version` across every repo with new commits |
 | `gh-portfolio audit owner/repo#42` | Run `triple-review` on a single PR's diff |
 | `gh-portfolio audit --all` | Run `triple-review` on every open PR across every repo |
@@ -111,19 +112,38 @@ Required tools: `bash 4+`, `gh`, `jq` (optional but enables prettier output for 
 | `meta` | Node | ✅ (npm) | ✅ | ✅ via JSON config |
 | **`gh-portfolio`** | **Bash** | **❌ (just cp)** | **✅** | **✅ via lib/* drop-ins** |
 
+## Shell completions
+
+Bash and zsh completion scripts live in `completions/`.
+
+**Bash** — add to `~/.bashrc` (or drop in `/etc/bash_completion.d/`):
+```bash
+source /usr/local/share/gh-portfolio/completions/gh-portfolio.bash
+```
+
+**Zsh** — add the directory to `$fpath` before calling `compinit`:
+```zsh
+fpath=(/usr/local/share/gh-portfolio/completions $fpath)
+autoload -Uz compinit && compinit
+```
+
+Both scripts read `~/.gh-portfolio/portfolio.toml` to suggest `owner/repo#N` targets for
+`audit`, `summary`, and `cycle` without a network call.
+
 ## Testing
 
 ```bash
 bash tests/test_gh-portfolio.sh
 ```
 
-5 smoke tests cover: config bootstrap, repo list parsing, owner readback, unknown-command exit, help output. Tests run against an isolated `$HOME` so they don't touch a real config.
+13 smoke tests cover: config bootstrap, repo list parsing (multi-line, single-line, mixed TOML layouts), owner readback, unknown-command exit, help output, empty/malformed TOML, gh-not-on-PATH, jq-not-on-PATH, legacy dotmoo config migration, and `status --json` flag parsing. Tests run against an isolated `$HOME` so they don't touch a real config.
 
 ## Roadmap
 
 - v0.2: `gh-portfolio init <repo>` — scaffold a new repo with the portfolio's CI + structure
 - v0.3: `gh-portfolio release <repo>` — automated tag-and-publish chain (uses flowtag + gh)
 - v0.4: `gh-portfolio dashboard` — TUI live view via `tput`/`watch`
+- v0.5: migrate smoke tests to bats-core for TAP output and richer assertions
 
 ## License
 
