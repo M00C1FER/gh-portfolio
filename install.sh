@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dotmoo — interactive install wizard.
+# gh-portfolio — interactive install wizard.
 set -euo pipefail
 
 if [ -t 1 ]; then C_BOLD="$(tput bold)"; C_RESET="$(tput sgr0)"; C_GREEN="$(tput setaf 2)"; C_YELLOW="$(tput setaf 3)"; C_RED="$(tput setaf 1)"; else C_BOLD=""; C_RESET=""; C_GREEN=""; C_YELLOW=""; C_RED=""; fi
@@ -25,7 +25,7 @@ pkg_install() {
 }
 
 main() {
-    say "dotmoo — install wizard (pure Bash, no compiler needed)"
+    say "gh-portfolio — install wizard (pure Bash, no compiler needed)"
     detect_os
     info "OS: ${OS_ID}${OS_VERSION:+ $OS_VERSION}$([ "$OS_WSL" = 1 ] && echo ' (WSL2)')"
 
@@ -58,26 +58,26 @@ main() {
     command -v jq >/dev/null || pkg_install jq || warn "jq optional — install for prettier output"
     command -v git >/dev/null || pkg_install git || fail "git required"
 
-    say ""; say "Step 2/4: Install dotmoo files"
+    say ""; say "Step 2/4: Install gh-portfolio files"
     local BIN_DIR LIB_DIR
     BIN_DIR="$(prompt_default "Binary directory (must be in \$PATH)" "$HOME/.local/bin")"
-    LIB_DIR="$(prompt_default "Library directory" "$HOME/.local/share/dotmoo")"
+    LIB_DIR="$(prompt_default "Library directory" "$HOME/.local/share/gh-portfolio")"
     mkdir -p "$BIN_DIR" "$LIB_DIR/lib"
-    local INSTALL_HOME="$HOME/.local/share/dotmoo-src"
-    if [ -d "$INSTALL_HOME/.git" ]; then ( cd "$INSTALL_HOME" && git pull -q ); else git clone -q https://github.com/M00C1FER/dotmoo.git "$INSTALL_HOME"; fi
-    cp "$INSTALL_HOME/bin/dotmoo" "$BIN_DIR/dotmoo"
+    local INSTALL_HOME="$HOME/.local/share/gh-portfolio-src"
+    if [ -d "$INSTALL_HOME/.git" ]; then ( cd "$INSTALL_HOME" && git pull -q ); else git clone -q https://github.com/M00C1FER/gh-portfolio.git "$INSTALL_HOME"; fi
+    cp "$INSTALL_HOME/bin/gh-portfolio" "$BIN_DIR/gh-portfolio"
     cp -r "$INSTALL_HOME/lib/." "$LIB_DIR/lib/"
-    chmod +x "$BIN_DIR/dotmoo"
+    chmod +x "$BIN_DIR/gh-portfolio"
     # Patch the launcher to know where lib lives, regardless of how it was invoked
-    sed -i.bak "s|^DOTMOO_LIB=.*|DOTMOO_LIB=\"\${DOTMOO_LIB:-$LIB_DIR/lib}\"|" "$BIN_DIR/dotmoo"
-    rm -f "$BIN_DIR/dotmoo.bak"
-    ok "installed → $BIN_DIR/dotmoo"
+    sed -i.bak "s|^GH_PORTFOLIO_LIB=.*|GH_PORTFOLIO_LIB=\"\${GH_PORTFOLIO_LIB:-$LIB_DIR/lib}\"|" "$BIN_DIR/gh-portfolio"
+    rm -f "$BIN_DIR/gh-portfolio.bak"
+    ok "installed → $BIN_DIR/gh-portfolio"
 
     say ""; say "Step 3/4: Configure portfolio.toml"
     local owner repos_in
     owner="$(prompt_default "Default GitHub owner/org" "$(gh api user -q .login 2>/dev/null || echo '')")"
     repos_in="$(prompt_default "Repos (comma-separated; leave empty to edit later)" "")"
-    mkdir -p "$HOME/.dotmoo"
+    mkdir -p "$HOME/.gh-portfolio"
     {
         echo "[portfolio]"
         echo "default_owner = \"$owner\""
@@ -89,12 +89,12 @@ main() {
             echo "    # add repo names here"
         fi
         echo "]"
-    } > "$HOME/.dotmoo/portfolio.toml"
-    ok "wrote $HOME/.dotmoo/portfolio.toml"
+    } > "$HOME/.gh-portfolio/portfolio.toml"
+    ok "wrote $HOME/.gh-portfolio/portfolio.toml"
 
     say ""; say "Step 4/4: Verify"
-    "$BIN_DIR/dotmoo" version
+    "$BIN_DIR/gh-portfolio" version
     info ""
-    info "Try: dotmoo status"
+    info "Try: gh-portfolio status"
 }
 main "$@"

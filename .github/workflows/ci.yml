@@ -9,9 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Smoke tests
-        run: bash tests/test_dotmoo.sh
+        run: bash tests/test_gh-portfolio.sh
       - name: Shellcheck
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck
-          shellcheck -x bin/dotmoo lib/*.sh install.sh tests/*.sh
+          shellcheck -x bin/gh-portfolio lib/*.sh install.sh tests/*.sh

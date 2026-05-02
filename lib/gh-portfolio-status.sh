@@ -1,16 +1,16 @@
 # shellcheck shell=bash
-# dotmoo status — table of CI/stars/issues for every configured repo.
+# gh-portfolio status — table of CI/stars/issues for every configured repo.
 
 cmd_status() {
     local owner repos
     owner="$(read_default_owner)"
     if [ -z "$owner" ]; then
-        echo "[dotmoo] set [portfolio].default_owner in $DOTMOO_CONFIG" >&2
+        echo "[gh-portfolio] set [portfolio].default_owner in $GH_PORTFOLIO_CONFIG" >&2
         return 2
     fi
     repos="$(read_repos)"
     if [ -z "$repos" ]; then
-        echo "[dotmoo] no repos configured in $DOTMOO_CONFIG" >&2
+        echo "[gh-portfolio] no repos configured in $GH_PORTFOLIO_CONFIG" >&2
         return 2
     fi
 
