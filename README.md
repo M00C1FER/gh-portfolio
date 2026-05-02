@@ -94,14 +94,42 @@ Each tool is independent — `gh-portfolio` just orchestrates. If a tool isn't i
 
 | OS | Shell | Status |
 |---|---|---|
-| Debian 13 / Ubuntu 22.04+ | bash 4+ | ✅ tested |
-| WSL2 (Ubuntu / Debian) | bash 4+ | ✅ tested |
+| Debian 12/13 / Ubuntu 22.04+ | bash 4+ | ✅ tested (CI container) |
+| WSL2 (Ubuntu / Debian) | bash 4+ | ✅ transparent; same as native Linux |
 | Fedora / RHEL | bash 4+ | ✅ should work (relies only on POSIX `awk`/`sed`) |
-| Arch / Alpine | bash 4+ | ✅ should work |
-| macOS | bash 5+ (`brew install bash`) | ✅ should work; default macOS bash 3.2 won't suffice |
+| Arch / Alpine (musl) | bash 4+ | ✅ tested (CI container; requires `apk add bash`) |
+| macOS | bash 5+ (`brew install bash`) | ✅ tested (CI); default macOS bash 3.2 won't suffice |
+| Termux (Android, arm64) | bash 5+ | ✅ see [Termux](#termux) section below |
 | Windows native | n/a | use WSL2 or Git Bash |
 
 Required tools: `bash 4+`, `gh`, `jq` (optional but enables prettier output for some commands), `git`.
+
+## Termux
+
+gh-portfolio works in [Termux](https://termux.dev/) on Android (arm64). Install with one command:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/M00C1FER/gh-portfolio/main/scripts/install-termux.sh)
+```
+
+Or step-by-step:
+
+```bash
+pkg install bash gh jq git
+git clone https://github.com/M00C1FER/gh-portfolio.git
+cp gh-portfolio/bin/gh-portfolio ~/bin/
+cp -r gh-portfolio/lib ~/.local/share/gh-portfolio/
+# patch lib path:
+sed -i "s|^GH_PORTFOLIO_LIB=.*|GH_PORTFOLIO_LIB=\"\${GH_PORTFOLIO_LIB:-$HOME/.local/share/gh-portfolio/lib}\"|" ~/bin/gh-portfolio
+gh auth login
+gh-portfolio version
+```
+
+**Caveats:**
+- Termux's `$HOME` is `/data/data/com.termux/files/home`; `~/.gh-portfolio/portfolio.toml` resolves correctly there.
+- `sudo` is not available; the script installs into `~/bin` (auto-added to `$PATH` by Termux).
+- `gh auth login` requires either a browser (via [Termux:API](https://wiki.termux.com/wiki/Termux:API)) or a token via `GH_TOKEN`.
+- The `gh-portfolio bump` clone step requires enough storage on the device.
 
 ## Comparison vs alternatives
 
@@ -133,17 +161,21 @@ Both scripts read `~/.gh-portfolio/portfolio.toml` to suggest `owner/repo#N` tar
 ## Testing
 
 ```bash
+# Original bash smoke tests (works on any platform with just bash):
 bash tests/test_gh-portfolio.sh
+
+# bats-core tests (TAP output, richer assertions):
+bats tests/test_gh-portfolio.bats   # requires: apt install bats / brew install bats-core / apk add bats
 ```
 
-13 smoke tests cover: config bootstrap, repo list parsing (multi-line, single-line, mixed TOML layouts), owner readback, unknown-command exit, help output, empty/malformed TOML, gh-not-on-PATH, jq-not-on-PATH, legacy dotmoo config migration, and `status --json` flag parsing. Tests run against an isolated `$HOME` so they don't touch a real config.
+13 smoke tests cover: config bootstrap, repo list parsing (multi-line, single-line, mixed TOML layouts), owner readback, unknown-command exit, help output, empty/malformed TOML, gh-not-on-PATH, jq-not-on-PATH, legacy dotmoo config migration, and `status --json` flag parsing. Tests run against an isolated `$HOME` so they never touch a real config.
 
 ## Roadmap
 
 - v0.2: `gh-portfolio init <repo>` — scaffold a new repo with the portfolio's CI + structure
 - v0.3: `gh-portfolio release <repo>` — automated tag-and-publish chain (uses flowtag + gh)
 - v0.4: `gh-portfolio dashboard` — TUI live view via `tput`/`watch`
-- v0.5: migrate smoke tests to bats-core for TAP output and richer assertions
+- ~~v0.5: migrate smoke tests to bats-core for TAP output and richer assertions~~ ✅ done
 
 ## License
 

@@ -142,14 +142,22 @@ rm -f "$HOME/.dotmoo/portfolio.toml"
 pass "legacy dotmoo config migration"
 
 # 13. status --json rejects when owner unset (flag parsing tested without network)
-# Restore normal PATH; gh + jq present but owner="" makes cmd_status fail before any API call.
+# Use a controlled PATH with stub gh+jq so this test works on any platform
+# (including minimal containers where the real gh may not be installed).
+# awk and sed are system utilities needed by the TOML reader; symlink the real ones.
+mkdir -p "$_test_home/bin13"
+ln -sf "$(command -v bash)" "$_test_home/bin13/bash"
+ln -sf "$(command -v awk)"  "$_test_home/bin13/awk"
+ln -sf "$(command -v sed)"  "$_test_home/bin13/sed"
+printf '#!/bin/sh\nexec true\n' > "$_test_home/bin13/gh";  chmod +x "$_test_home/bin13/gh"
+printf '#!/bin/sh\nexec true\n' > "$_test_home/bin13/jq";  chmod +x "$_test_home/bin13/jq"
 cat > "$GH_PORTFOLIO_CONFIG" <<EOF
 [portfolio]
 default_owner = ""
 repos = [ "some-repo" ]
 EOF
 err=""
-if err="$("$GH_PORTFOLIO" status --json 2>&1)"; then
+if err="$(PATH="$_test_home/bin13" "$GH_PORTFOLIO" status --json 2>&1)"; then
     fail "status --json should fail when owner unset"
 fi
 [[ "$err" == *"default_owner"* ]] || fail "status --json should mention default_owner: $err"

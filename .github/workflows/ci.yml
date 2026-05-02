@@ -4,10 +4,13 @@ on:
   pull_request: { branches: [main, master] }
 
 jobs:
+  # ── Native OS runners ────────────────────────────────────────────────────────
   smoke:
+    name: smoke (${{ matrix.os }})
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +20,7 @@ jobs:
       - name: Smoke tests
         run: bash tests/test_gh-portfolio.sh
       - name: Install shellcheck (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck
@@ -25,4 +28,48 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: brew install shellcheck
       - name: Shellcheck
-        run: shellcheck -x --source-path=lib bin/gh-portfolio lib/*.sh install.sh tests/*.sh completions/gh-portfolio.bash
+        run: shellcheck -x --source-path=lib bin/gh-portfolio lib/*.sh install.sh tests/*.sh scripts/*.sh completions/gh-portfolio.bash
+      - name: Install bats-core (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get install -y -qq bats
+      - name: Install bats-core (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install bats-core
+      - name: Bats tests
+        run: bats tests/test_gh-portfolio.bats
+
+  # ── Debian container ─────────────────────────────────────────────────────────
+  smoke-debian:
+    name: smoke (debian:12 container)
+    runs-on: ubuntu-latest
+    container: debian:12
+    steps:
+      - name: Install deps
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq bash git shellcheck bats
+      - uses: actions/checkout@v4
+      - name: Smoke tests
+        run: bash tests/test_gh-portfolio.sh
+      - name: Bats tests
+        run: bats tests/test_gh-portfolio.bats
+      - name: Shellcheck
+        run: shellcheck -x --source-path=lib bin/gh-portfolio lib/*.sh install.sh tests/*.sh scripts/*.sh completions/gh-portfolio.bash
+
+  # -- Alpine container (musl libc, ash default shell) -----------------------
+  smoke-alpine:
+    name: smoke (alpine:3.19 container)
+    runs-on: ubuntu-latest
+    container: alpine:3.19
+    steps:
+      - name: Install deps
+        # Alpine uses ash by default; bash + git + shellcheck + bats are needed.
+        run: apk add --no-cache bash git shellcheck bats
+      - uses: actions/checkout@v4
+      - name: Smoke tests
+        # Explicitly invoke with bash (not sh) for the ash-default environment.
+        run: bash tests/test_gh-portfolio.sh
+      - name: Bats tests
+        run: bats tests/test_gh-portfolio.bats
+      - name: Shellcheck
+        run: shellcheck -x --source-path=lib bin/gh-portfolio lib/*.sh install.sh tests/*.sh scripts/*.sh completions/gh-portfolio.bash

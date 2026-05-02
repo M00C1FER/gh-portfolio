@@ -21,7 +21,11 @@ cmd_cycle() {
     fi
 
     local diff_file; diff_file="$(mktemp -t gh-portfolio-cycle-XXXXXX.diff)"
-    trap 'rm -f "$diff_file"' EXIT
+    # EXIT trap is a safety net for abnormal exits (signal, set -e).
+    # We also clean up explicitly before returning because diff_file is a
+    # local variable and goes out of scope before the trap fires on normal exit.
+    # shellcheck disable=SC2064  # intentional: diff_file must expand now to capture the path
+    trap 'rm -f "'"$diff_file"'"' EXIT
     gh pr diff "$pr" --repo "$repo" > "$diff_file"
 
     echo "==== gatecheck (secret scan) ===="
@@ -60,4 +64,7 @@ cmd_cycle() {
         echo "[gh-portfolio] flowtag not installed; skipping"
     fi
 
+    # Explicit cleanup — diff_file is local and out of scope when EXIT fires
+    # on a normal return, so we remove it here as well.
+    rm -f "$diff_file"
 }
