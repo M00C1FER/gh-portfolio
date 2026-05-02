@@ -11,6 +11,7 @@ fail() { printf "  %s✗%s %s\n" "$C_RED" "$C_RESET" "$1" >&2; exit 1; }
 prompt_yn() { local q="$1" def="${2:-y}" ans; if [ "$def" = "y" ]; then read -r -p "  $q [Y/n]: " ans; ans="${ans:-y}"; else read -r -p "  $q [y/N]: " ans; ans="${ans:-n}"; fi; [[ "$ans" =~ ^[Yy] ]]; }
 prompt_default() { read -r -p "  $1 [$2]: " ans; echo "${ans:-$2}"; }
 
+# shellcheck source=/dev/null
 detect_os() { OS_ID=unknown; OS_VERSION=""; OS_WSL=0; [ -f /etc/os-release ] && { . /etc/os-release; OS_ID="${ID:-}"; OS_VERSION="${VERSION_ID:-}"; }; [ "$(uname)" = "Darwin" ] && OS_ID=macos; if grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then OS_WSL=1; fi; }
 pkg_install() {
     case "$OS_ID" in
