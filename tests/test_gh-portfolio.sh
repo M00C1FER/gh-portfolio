@@ -141,4 +141,18 @@ out="$("$GH_PORTFOLIO" list)"
 rm -f "$HOME/.dotmoo/portfolio.toml"
 pass "legacy dotmoo config migration"
 
+# 12. status --json rejects when owner unset (flag parsing tested without network)
+# Restore normal PATH; gh + jq present but owner="" makes cmd_status fail before any API call.
+cat > "$GH_PORTFOLIO_CONFIG" <<EOF
+[portfolio]
+default_owner = ""
+repos = [ "some-repo" ]
+EOF
+err=""
+if err="$("$GH_PORTFOLIO" status --json 2>&1)"; then
+    fail "status --json should fail when owner unset"
+fi
+[[ "$err" == *"default_owner"* ]] || fail "status --json should mention default_owner: $err"
+pass "status --json flag parsed (owner-unset guard fires correctly)"
+
 echo "=== all smoke tests passed ==="
