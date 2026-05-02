@@ -136,7 +136,7 @@ Both scripts read `~/.gh-portfolio/portfolio.toml` to suggest `owner/repo#N` tar
 bash tests/test_gh-portfolio.sh
 ```
 
-12 smoke tests cover: config bootstrap, repo list parsing (multi-line, single-line, mixed TOML layouts), owner readback, unknown-command exit, help output, empty/malformed TOML, gh-not-on-PATH, jq-not-on-PATH, and legacy dotmoo config migration. Tests run against an isolated `$HOME` so they don't touch a real config.
+13 smoke tests cover: config bootstrap, repo list parsing (multi-line, single-line, mixed TOML layouts), owner readback, unknown-command exit, help output, empty/malformed TOML, gh-not-on-PATH, jq-not-on-PATH, legacy dotmoo config migration, and `status --json` flag parsing. Tests run against an isolated `$HOME` so they don't touch a real config.
 
 ## Roadmap
 
