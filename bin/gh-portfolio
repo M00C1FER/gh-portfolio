@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# dotmoo — multi-repo portfolio CLI wrapping gh + jq.
+# gh-portfolio — multi-repo portfolio CLI wrapping gh + jq.
 #
 # Usage:
-#   dotmoo <subcommand> [options]
+#   gh-portfolio <subcommand> [options]
 #
 # Subcommands:
 #   status      table of CI/stars/issues across all configured repos
@@ -12,45 +12,45 @@
 #   cycle       full chain: gatecheck → triple-review → pr-summary-mesh → flowtag
 #   list        print the configured repo list
 #   config      print resolved config + path
-#   version     print dotmoo version
+#   version     print gh-portfolio version
 #   help        print this message
 #
 # Configuration:
-#   ~/.dotmoo/portfolio.toml   (auto-created on first run if absent)
+#   ~/.gh-portfolio/portfolio.toml   (auto-created on first run if absent)
 
 set -euo pipefail
 
-DOTMOO_VERSION="0.1.0"
-DOTMOO_CONFIG="${DOTMOO_CONFIG:-$HOME/.dotmoo/portfolio.toml}"
-DOTMOO_LIB="${DOTMOO_LIB:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib}"
+GH_PORTFOLIO_VERSION="0.1.0"
+GH_PORTFOLIO_CONFIG="${GH_PORTFOLIO_CONFIG:-$HOME/.gh-portfolio/portfolio.toml}"
+GH_PORTFOLIO_LIB="${GH_PORTFOLIO_LIB:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib}"
 
 # ── Bootstrap config if absent ───────────────────────────────────────────────
 
 ensure_config() {
-    if [ -f "$DOTMOO_CONFIG" ]; then return 0; fi
-    mkdir -p "$(dirname "$DOTMOO_CONFIG")"
-    cat > "$DOTMOO_CONFIG" <<'EOF'
-# dotmoo portfolio config — list every repo `dotmoo` should fan out to.
-# Reload anytime by re-running `dotmoo` (no daemon, no cache).
+    if [ -f "$GH_PORTFOLIO_CONFIG" ]; then return 0; fi
+    mkdir -p "$(dirname "$GH_PORTFOLIO_CONFIG")"
+    cat > "$GH_PORTFOLIO_CONFIG" <<'EOF'
+# gh-portfolio portfolio config — list every repo `gh-portfolio` should fan out to.
+# Reload anytime by re-running `gh-portfolio` (no daemon, no cache).
 [portfolio]
 default_owner = ""
 repos = [
     # "polite-fetch",
     # "mcp-citation-research",
     # "triple-review",
-    # "memory-anthropic-api",
+    # "memory-tool-conformance",
     # "recon-orchestrator",
     # "flowtag",
     # "pr-summary-mesh",
     # "gatecheck",
-    # "dotmoo",
+    # "gh-portfolio",
 ]
 EOF
-    echo "[dotmoo] created $DOTMOO_CONFIG — edit it to register repos." >&2
+    echo "[gh-portfolio] created $GH_PORTFOLIO_CONFIG — edit it to register repos." >&2
 }
 
 # ── Minimal TOML reader (defensive; no toml-cli dep) ─────────────────────────
-# Parses only the two fields dotmoo needs: default_owner + repos array.
+# Parses only the two fields gh-portfolio needs: default_owner + repos array.
 
 read_default_owner() {
     awk -F'=' '
@@ -59,7 +59,7 @@ read_default_owner() {
             gsub(/^[ \t"]+|[ \t"]+$/, "", v)
             print v
             exit
-        }' "$DOTMOO_CONFIG"
+        }' "$GH_PORTFOLIO_CONFIG"
 }
 
 read_repos() {
@@ -100,21 +100,21 @@ read_repos() {
             next
         }
         in_arr { emit($0) }
-    ' "$DOTMOO_CONFIG"
+    ' "$GH_PORTFOLIO_CONFIG"
 }
 
 # ── Sub-command implementations (sourced from lib/) ──────────────────────────
 
 require_gh() {
     command -v gh >/dev/null 2>&1 || {
-        echo "[dotmoo] error: 'gh' CLI not found. Install: https://cli.github.com/" >&2
+        echo "[gh-portfolio] error: 'gh' CLI not found. Install: https://cli.github.com/" >&2
         exit 2
     }
 }
 
 require_jq() {
     command -v jq >/dev/null 2>&1 || {
-        echo "[dotmoo] error: 'jq' not found. Install: https://jqlang.github.io/jq/" >&2
+        echo "[gh-portfolio] error: 'jq' not found. Install: https://jqlang.github.io/jq/" >&2
         exit 2
     }
 }
@@ -123,23 +123,23 @@ dispatch() {
     local cmd="${1:-help}"
     shift || true
     case "$cmd" in
-        status)   require_gh; require_jq; source "$DOTMOO_LIB/dotmoo-status.sh";   cmd_status   "$@";;
-        bump)     require_gh; source "$DOTMOO_LIB/dotmoo-bump.sh";     cmd_bump     "$@";;
-        audit)    require_gh; source "$DOTMOO_LIB/dotmoo-audit.sh";    cmd_audit    "$@";;
-        summary)  require_gh; source "$DOTMOO_LIB/dotmoo-summary.sh";  cmd_summary  "$@";;
-        cycle)    require_gh; source "$DOTMOO_LIB/dotmoo-cycle.sh";    cmd_cycle    "$@";;
+        status)   require_gh; require_jq; source "$GH_PORTFOLIO_LIB/gh-portfolio-status.sh";   cmd_status   "$@";;
+        bump)     require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-bump.sh";     cmd_bump     "$@";;
+        audit)    require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-audit.sh";    cmd_audit    "$@";;
+        summary)  require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-summary.sh";  cmd_summary  "$@";;
+        cycle)    require_gh; source "$GH_PORTFOLIO_LIB/gh-portfolio-cycle.sh";    cmd_cycle    "$@";;
         list)     read_repos;;
         config)
-            echo "config_path: $DOTMOO_CONFIG"
+            echo "config_path: $GH_PORTFOLIO_CONFIG"
             echo "default_owner: $(read_default_owner)"
             echo "repos:"
             read_repos | sed 's/^/  - /'
             ;;
-        version)  echo "dotmoo $DOTMOO_VERSION";;
+        version)  echo "gh-portfolio $GH_PORTFOLIO_VERSION";;
         help|-h|--help|"")
             sed -n '1,/^set -euo/p' "$0" | sed '$d' | grep -E '^# ' | sed 's/^# \?//'
             ;;
-        *)        echo "[dotmoo] unknown command: $cmd (try 'dotmoo help')" >&2; exit 2;;
+        *)        echo "[gh-portfolio] unknown command: $cmd (try 'gh-portfolio help')" >&2; exit 2;;
     esac
 }
 

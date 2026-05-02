@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# dotmoo bump — fan out `flowtag --next-version` across configured repos.
+# gh-portfolio bump — fan out `flowtag --next-version` across configured repos.
 # Read-only by default; pass `--apply` to actually write changelogs.
 
 cmd_bump() {
@@ -7,26 +7,26 @@ cmd_bump() {
     [ "${1:-}" = "--apply" ] && apply=1
 
     if ! command -v flowtag >/dev/null 2>&1; then
-        echo "[dotmoo] flowtag not on PATH (install: https://github.com/M00C1FER/flowtag)" >&2
+        echo "[gh-portfolio] flowtag not on PATH (install: https://github.com/M00C1FER/flowtag)" >&2
         return 2
     fi
 
     local owner; owner="$(read_default_owner)"
     if [ -z "$owner" ]; then
-        echo "[dotmoo] error: default_owner not set. Edit $DOTMOO_CONFIG and set default_owner." >&2
+        echo "[gh-portfolio] error: default_owner not set. Edit $GH_PORTFOLIO_CONFIG and set default_owner." >&2
         return 2
     fi
     local repos; repos="$(read_repos)"
-    [ -z "$repos" ] && { echo "[dotmoo] no repos configured" >&2; return 2; }
+    [ -z "$repos" ] && { echo "[gh-portfolio] no repos configured" >&2; return 2; }
 
-    local clones_root="${DOTMOO_CLONES:-$HOME/.dotmoo/clones}"
+    local clones_root="${GH_PORTFOLIO_CLONES:-$HOME/.gh-portfolio/clones}"
     mkdir -p "$clones_root"
 
     while IFS= read -r repo; do
         [ -z "$repo" ] && continue
         local local_path="$clones_root/$repo"
         if [ ! -d "$local_path/.git" ]; then
-            echo "[dotmoo] cloning $owner/$repo …"
+            echo "[gh-portfolio] cloning $owner/$repo …"
             gh repo clone "$owner/$repo" "$local_path" -- -q || continue
         fi
         ( cd "$local_path" && git fetch -q --tags )
