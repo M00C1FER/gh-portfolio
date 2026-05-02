@@ -13,12 +13,17 @@ cmd_audit() {
         return 2
     fi
 
-    # Track every temp file we create; trap on EXIT cleans them all up even
-    # if the script is interrupted (Ctrl+C, kill, error mid-loop). Without
-    # this, mktemp files leaked under /tmp on every interruption.
+    # Track every temp file we create so we can clean them up explicitly.
+    # We still register an EXIT trap as a safety net for abnormal exits
+    # (signal, set -e mid-loop), but we also rm files explicitly before
+    # returning so they are cleaned up even when the function exits normally
+    # (at which point local variables are already out of scope for the trap).
     local -a __tmpfiles=()
-    # shellcheck disable=SC2064,SC2154  # eager expansion intentional; __tf is the for-loop variable inside the trap string
-    trap 'for __tf in "${__tmpfiles[@]}"; do rm -f "$__tf"; done' EXIT
+    # "${arr[@]+${arr[@]}}" expands to the array elements only when the array is
+    # non-empty, avoiding an "unbound variable" error under `set -u` when the
+    # array has never been populated (e.g. the function returns early).
+    # shellcheck disable=SC2064  # intentional: trap fires while __tmpfiles is still in scope on abnormal exit
+    trap 'for __tf in "${__tmpfiles[@]+"${__tmpfiles[@]}"}"; do rm -f "$__tf"; done' EXIT
 
     if [ "$target" = "--all" ]; then
         local owner; owner="$(read_default_owner)"
@@ -42,6 +47,9 @@ cmd_audit() {
                 fi
             done <<< "$prs"
         done <<< "$repos"
+        # Explicit cleanup — local array goes out of scope after return so the
+        # EXIT trap cannot reach these files on a normal exit.
+        for __tf in "${__tmpfiles[@]+"${__tmpfiles[@]}"}"; do rm -f "$__tf"; done
         return 0
     fi
 
@@ -60,4 +68,6 @@ cmd_audit() {
     __tmpfiles+=("$diff_file")
     gh pr diff "$pr" --repo "$repo" > "$diff_file"
     triple-review --falsify "$diff_file"
+    # Explicit cleanup — see comment above.
+    rm -f "$diff_file"
 }
