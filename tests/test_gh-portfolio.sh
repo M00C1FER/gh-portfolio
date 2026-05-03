@@ -125,7 +125,7 @@ fi
 [[ "$err" == *"'jq'"* ]] || fail "error should mention jq: $err"
 pass "jq-not-on-PATH rejected"
 
-# 11. legacy dotmoo config migration
+# 12. legacy dotmoo config migration
 rm -f "$GH_PORTFOLIO_CONFIG"
 mkdir -p "$HOME/.dotmoo"
 cat > "$HOME/.dotmoo/portfolio.toml" <<EOF
