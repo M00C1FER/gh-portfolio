@@ -60,15 +60,9 @@ gh-portfolio status
 [portfolio]
 default_owner = "your-handle"
 repos = [
-    "polite-fetch",
-    "mcp-citation-research",
-    "triple-review",
-    "memory-tool-conformance",
-    "recon-orchestrator",
-    "flowtag",
-    "pr-summary-mesh",
-    "gatecheck",
-    "gh-portfolio",
+    "my-cli-tool",
+    "my-api-service",
+    "my-shared-lib",
 ]
 ```
 
