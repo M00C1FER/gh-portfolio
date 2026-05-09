@@ -1,3 +1,6 @@
+> **⚠ Status: portfolio demonstration**
+>
+> This repo is a learning / demonstration project, not an actively-maintained product. The code works for what it shows — but it isn't intended for production adoption and won't receive ongoing development. The active development focus is [`M00C1FER/mcp-citation-research`](https://github.com/M00C1FER/mcp-citation-research) (MCP research server with a hard confidence-gate refusal contract).
 # gh-portfolio
 
 > **The portfolio operator: one command, many repos.** Pure Bash CLI that wraps `gh` + `jq` for fleet operations across an entire GitHub portfolio. Status table across all repos, fan-out semver bumps, batch PR audits, full review-summarize-release chains in one shot. No compiler, no venv, no toolchain — just `bash 4+`, `gh`, and a 50-line config.
